@@ -2,7 +2,7 @@
 
 A Python-based IT Asset and Ticket Management System built to practice **Object-Oriented Programming (OOP)** and clean project structure.
 
-The project will initially be developed as a **CLI application**. Later, the same core business logic can be extended with FastAPI, a database, Docker, and CI/CD.
+The project is initially being developed as a **CLI application**. Later, the same core business logic will be extended with a database, FastAPI, Docker, and CI/CD.
 
 ## Project Goals
 
@@ -24,9 +24,9 @@ This project is designed to practice:
 
 ## Current Scope
 
-The initial version will be a CLI application.
+The initial version is a CLI application.
 
-The system will eventually manage:
+The system will manage:
 
 * Employees
 * IT assets
@@ -56,14 +56,14 @@ Repositories
 In-memory storage
 ```
 
-The initial version will **not** use:
+The initial version does **not** use:
 
 * FastAPI
 * Database
 * Docker
 * CI/CD
 
-These will be considered in later stages.
+These will be introduced in later stages.
 
 ## Project Structure
 
@@ -74,7 +74,12 @@ it_asset_management/
 │   ├── __init__.py
 │   │
 │   ├── models/
-│   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── employee.py
+│   │   ├── asset.py
+│   │   ├── laptop.py
+│   │   ├── monitor.py
+│   │   └── phone.py
 │   │
 │   ├── services/
 │   │   └── __init__.py
@@ -86,10 +91,10 @@ it_asset_management/
 │   │   └── __init__.py
 │   │
 │   └── utils/
-│       └── __init__.py
+│       ├── __init__.py
+│       └── enums.py
 │
 ├── tests/
-│   └── __init__.py
 │
 ├── main.py
 ├── README.md
@@ -97,31 +102,45 @@ it_asset_management/
 └── .gitignore
 ```
 
-## Development Roadmap
+## Current Progress
 
-### Phase 1 — OOP Models
+### Phase 1 — Python OOP Foundation ✅
 
-Create and develop the core domain models:
+The core OOP foundation has been implemented.
 
-* Employee
-* Technician
-* Asset
-* Laptop
-* Monitor
-* Phone
-* Ticket
-* Comment
+Completed:
 
-### Phase 2 — Business Logic
+* Employee model
+* Base Asset model
+* Asset type and status enums
+* Laptop model using inheritance
+* Monitor model using inheritance
+* Phone model using inheritance
+* `super()` for parent class initialization
+* Type hints
+* Employee-to-asset assignment
+* Multiple assets assigned to an employee
+* Separate asset collections for different employees
 
-Create service classes responsible for operations such as:
+Current object relationship:
+
+```text
+Employee
+ │
+ └── assigned_assets
+        ├── Laptop
+        ├── Monitor
+        └── Phone
+```
+
+### Phase 2 — Business Logic 🚧
+
+The next stage will introduce service classes responsible for application operations such as:
 
 * Employee management
 * Asset management
 * Asset assignment
-* Ticket creation
-* Ticket assignment
-* Ticket status management
+* Asset status management
 
 ### Phase 3 — Repository Layer
 
@@ -133,25 +152,42 @@ Implement in-memory repositories for:
 
 ### Phase 4 — Custom Exceptions
 
-Add application-specific exceptions for invalid operations and missing resources.
+Add application-specific exceptions for:
+
+* Invalid operations
+* Missing resources
+* Invalid asset assignments
+* Other business-rule violations
 
 ### Phase 5 — CLI
 
 Create a command-line interface for interacting with the system.
 
+Planned functionality:
+
+* Create employees
+* Create assets
+* Assign assets to employees
+* View employees
+* View assets
+* View assets assigned to an employee
+* Manage asset status
+* Handle invalid operations
+
 ### Phase 6 — Testing
 
 Add unit tests using `pytest`.
 
-### Future Phases
+## Future Phases
 
 After the CLI version is stable:
 
-1. Database integration
+1. Database / PostgreSQL integration
 2. FastAPI API layer
 3. Docker
-4. CI/CD
+4. CI/CD with GitHub Actions
 5. Deployment
+6. Logging and monitoring
 
 ## Development Philosophy
 
@@ -163,6 +199,6 @@ FastAPI, databases, Docker, and CI/CD will be added only after the core CLI appl
 
 ## Status
 
-**Current stage:** Initial project structure
+**Current stage:** Python OOP foundation completed ✅
 
-The next stage is to design and implement the core OOP models.
+**Next stage:** Business logic and service layer 🚧
