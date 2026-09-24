@@ -11,9 +11,7 @@ class EmployeeService:
         return employee
 
     def get_employee(self, employee_id):
-        employee = self.employees[employee_id]
-
-        return employee
+        return self.employees.get(employee_id)
 
     def get_all_employees(self):
         return self.employees.values()

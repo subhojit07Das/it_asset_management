@@ -13,3 +13,6 @@ class Employee:
 
     def add_asset(self, asset: Asset):
         self.assigned_assets.append(asset)
+
+    def remove_asset(self, asset: Asset):
+        self.assigned_assets.remove(asset)
