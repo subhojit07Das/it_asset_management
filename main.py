@@ -1,25 +1,37 @@
 from app.services.employee_service import EmployeeService
 from app.services.asset_service import AssetService
-from app.utils.enums import AssetType, AssetStatus
-from app.services.assignment_service import AssignmentService
+from app.services.technician_service import TechnicianService
+from app.services.ticket_service import TicketService
+from app.utils.enums import AssetType, AssetStatus, TicketStatus, TicketPriority
 
-service = EmployeeService()
+employee_service = EmployeeService()
+asset_service = AssetService()
+technician_service = TechnicianService()
+ticket_service = TicketService(technician_service) 
 
-emp1 = service.create_employee(1001, "Aizen", "aizen@mail.com", "IT")
-emp2 = service.create_employee(1002, "Gin", "gin@mail.com", "Finance")
+emp1 = employee_service.create_employee(1001, "Aizen", "aizen@mail.com", "IT")
 
-new_service = AssetService()
-
-asset1 = new_service.create_asset(
+asset1 = asset_service.create_asset(
     1, AssetType.LAPTOP, "DELL", "Dell Latitude 5124", "SN45678", AssetStatus.AVAILABLE,
     ram="16GB", storage="512GB SSD", operating_system="Windows 11"
 )
 
-add_asset = AssignmentService(service, new_service)
+tech1 = technician_service.create_technician(1, "Uchiha", "uchiha@tech1.com", "IT Support")
 
-print(add_asset.assign_asset(1001, 1))
-print(add_asset.unassign_asset(1001, 1))
-print(add_asset.assign_asset(1002, 1))
+ticket1 = ticket_service.create_ticket(
+    1, emp1, asset1, "Laptop won't boot", TicketPriority.HIGH, TicketStatus.OPEN
+)
 
-print("Aizen's assets:", emp1.assigned_assets)
-print("Gin's assets:", emp2.assigned_assets)
+print(ticket1)
+print()
+
+result = ticket_service.assign_technician(1, 1)
+print("After assigning technician:")
+print(result)
+print()
+
+bad_result = ticket_service.assign_technician(999, 1)
+print(f"Assigning to a ticket that doesn't exist: {bad_result}")
+
+second_attempt = ticket_service.assign_technician(1, 1)
+print(f"Second assign attempt (ticket still OPEN): {second_attempt}")

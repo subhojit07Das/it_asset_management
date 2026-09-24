@@ -1,204 +1,142 @@
 # IT Asset & Ticket Management System
 
-A Python-based IT Asset and Ticket Management System built to practice **Object-Oriented Programming (OOP)** and clean project structure.
+## Project Overview
 
-The project is initially being developed as a **CLI application**. Later, the same core business logic will be extended with a database, FastAPI, Docker, and CI/CD.
+The IT Asset & Ticket Management System is a Python-based project designed to manage IT assets, employees, technicians, and support tickets.
 
-## Project Goals
-
-This project is designed to practice:
-
-* Object-Oriented Programming
-* Classes and objects
-* Encapsulation
-* Inheritance
-* Polymorphism
-* Abstraction
-* Composition
-* Exception handling
-* Type hints
-* Separation of concerns
-* Repository pattern
-* Service layer
-* Unit testing
+The project is being developed incrementally to demonstrate Object-Oriented Programming, business logic, software architecture, testing, database integration, API development, containerization, and CI/CD practices.
 
 ## Current Scope
 
-The initial version is a CLI application.
+The system currently supports:
 
-The system will manage:
+* Employee management
+* IT asset management
+* Specialized asset types:
 
-* Employees
-* IT assets
-* Asset assignments
-* Technicians
-* Support tickets
-* Ticket status
-* Ticket priority
-* Ticket comments
-* Asset lifecycle
+  * Laptop
+  * Monitor
+  * Phone
+* Asset status management:
 
-## Planned Architecture
+  * Available
+  * Assigned
+  * Repair
+  * Retired
+* Assigning assets to employees
+* Unassigning assets from employees
+* Technician management
+* Support ticket management
+* Ticket priority:
+
+  * Low
+  * Medium
+  * High
+  * Critical
+* Ticket status:
+
+  * Open
+  * In Progress
+  * Resolved
+  * Closed
+* Assigning technicians to support tickets
+* Automatic ticket transition from `OPEN` to `IN_PROGRESS` when a technician is assigned
+* Preventing technician assignment to tickets that are no longer `OPEN`
+
+## Current Architecture
+
+The project is being developed in stages.
+
+Current application structure:
 
 ```text
 CLI
- │
- ▼
+ ↓
 Services
- │
- ▼
+ ↓
 Models
- │
- ▼
-Repositories
- │
- ▼
-In-memory storage
 ```
 
-The initial version does **not** use:
-
-* FastAPI
-* Database
-* Docker
-* CI/CD
-
-These will be introduced in later stages.
+Repositories, database persistence, API development, Docker, and CI/CD will be introduced in later stages.
 
 ## Project Structure
 
 ```text
 it_asset_management/
-│
 ├── app/
 │   ├── __init__.py
-│   │
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── employee.py
-│   │   ├── asset.py
-│   │   ├── laptop.py
-│   │   ├── monitor.py
-│   │   └── phone.py
-│   │
-│   ├── services/
-│   │   └── __init__.py
-│   │
-│   ├── repositories/
-│   │   └── __init__.py
-│   │
 │   ├── exceptions/
 │   │   └── __init__.py
-│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── asset.py
+│   │   ├── employee.py
+│   │   ├── laptop.py
+│   │   ├── monitor.py
+│   │   ├── phone.py
+│   │   ├── technician.py
+│   │   └── ticket.py
+│   ├── repositories/
+│   │   └── __init__.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── asset_service.py
+│   │   ├── assignment_service.py
+│   │   ├── employee_service.py
+│   │   ├── technician_service.py
+│   │   └── ticket_service.py
 │   └── utils/
 │       ├── __init__.py
 │       └── enums.py
-│
-├── tests/
-│
 ├── main.py
 ├── README.md
 ├── requirements.txt
-└── .gitignore
+└── tests/
 ```
 
-## Current Progress
+## Implemented OOP Concepts
 
-### Phase 1 — Python OOP Foundation ✅
+The current implementation demonstrates:
 
-The core OOP foundation has been implemented.
+* Classes and objects
+* Constructors
+* Instance attributes
+* Instance methods
+* Inheritance
+* Method overriding
+* `super()`
+* Composition
+* Python dictionaries for in-memory storage
+* Python lists for object relationships
+* Enumerations using `Enum`
+* Basic business rules
 
-Completed:
+## Development Roadmap
 
-* Employee model
-* Base Asset model
-* Asset type and status enums
-* Laptop model using inheritance
-* Monitor model using inheritance
-* Phone model using inheritance
-* `super()` for parent class initialization
-* Type hints
-* Employee-to-asset assignment
-* Multiple assets assigned to an employee
-* Separate asset collections for different employees
+The project will be developed through the following stages:
 
-Current object relationship:
+1. Python OOP foundation
+2. Business logic / service layer
+3. Repository layer
+4. Custom exceptions
+5. CLI
+6. Testing
+7. PostgreSQL database integration
+8. FastAPI
+9. Docker
+10. CI/CD
+11. Deployment, monitoring, and logging
 
-```text
-Employee
- │
- └── assigned_assets
-        ├── Laptop
-        ├── Monitor
-        └── Phone
-```
+## Current Status
 
-### Phase 2 — Business Logic 🚧
+The OOP models and initial business-logic services have been implemented.
 
-The next stage will introduce service classes responsible for application operations such as:
+The current system uses **in-memory storage**, so data is reset whenever the application stops. Persistent storage will be introduced during the database stage.
 
-* Employee management
-* Asset management
-* Asset assignment
-* Asset status management
+## Git Workflow
 
-### Phase 3 — Repository Layer
+The project uses Git throughout development.
 
-Implement in-memory repositories for:
+Feature branches are used for individual development stages, and completed milestones are committed and pushed before being merged into `main`.
 
-* Employees
-* Assets
-* Tickets
-
-### Phase 4 — Custom Exceptions
-
-Add application-specific exceptions for:
-
-* Invalid operations
-* Missing resources
-* Invalid asset assignments
-* Other business-rule violations
-
-### Phase 5 — CLI
-
-Create a command-line interface for interacting with the system.
-
-Planned functionality:
-
-* Create employees
-* Create assets
-* Assign assets to employees
-* View employees
-* View assets
-* View assets assigned to an employee
-* Manage asset status
-* Handle invalid operations
-
-### Phase 6 — Testing
-
-Add unit tests using `pytest`.
-
-## Future Phases
-
-After the CLI version is stable:
-
-1. Database / PostgreSQL integration
-2. FastAPI API layer
-3. Docker
-4. CI/CD with GitHub Actions
-5. Deployment
-6. Logging and monitoring
-
-## Development Philosophy
-
-The project is being developed incrementally.
-
-The primary goal is to understand and implement the underlying Python and OOP concepts before introducing frameworks and infrastructure.
-
-FastAPI, databases, Docker, and CI/CD will be added only after the core CLI application is working correctly.
-
-## Status
-
-**Current stage:** Python OOP foundation completed ✅
-
-**Next stage:** Business logic and service layer 🚧
+Release tags will be introduced during the Docker/release stage.
