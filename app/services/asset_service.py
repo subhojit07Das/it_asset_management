@@ -3,10 +3,11 @@ from app.models.laptop import Laptop
 from app.models.monitor import Monitor
 from app.models.phone import Phone
 from app.utils.enums import AssetType
+from app.repositories.asset_repository import AssetRepository
 
 class AssetService:
-    def __init__(self):
-        self.assets = {}
+    def __init__(self, assets: AssetRepository):
+        self.assets = assets
 
     def create_asset(self, asset_id, asset_type, brand, model, serial_number, status, **extra_fields):
         if asset_type == AssetType.LAPTOP:
@@ -18,11 +19,17 @@ class AssetService:
         else:
             asset = Asset(asset_id, asset_type, brand, model, serial_number, status)
 
-        self.assets[asset_id] = asset
+        self.assets.save(asset)
         return asset
 
     def get_asset(self, asset_id):
-        return self.assets.get(asset_id)
+        return self.assets.get_by_id(asset_id)
 
     def get_all_assets(self):
-        return self.assets.values()
+        return self.assets.get_all()
+
+    def delete_asset(self, asset_id):
+        return self.assets.delete(asset_id)
+
+    def check_asset(self, asset_id):
+        return self.assets.exists(asset_id)

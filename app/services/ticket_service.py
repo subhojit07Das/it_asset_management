@@ -1,22 +1,23 @@
 from app.utils.enums import TicketStatus
+from app.repositories.ticket_repository import TicketRepository
 from app.models.ticket import Ticket
 
 class TicketService:
-    def __init__(self, technician_service):
-        self.tickets = {}
+    def __init__(self, technician_service, tickets: TicketRepository):
         self.technician_service = technician_service
+        self.tickets = tickets
 
     def create_ticket(self, ticket_id, employee, asset, problem, priority, status):
         ticket = Ticket(ticket_id, employee, asset, problem, priority, status)
 
-        self.tickets[ticket_id] = ticket
+        self.tickets.save(ticket)
         return ticket
 
     def get_ticket(self, ticket_id):
-        return self.tickets.get(ticket_id)
+        return self.tickets.get_by_id(ticket_id)
 
     def get_all_tickets(self):
-        return self.tickets.values()
+        return self.tickets.get_all()
 
     def assign_technician(self, ticket_id, technician_id):
         ticket = self.get_ticket(ticket_id)
