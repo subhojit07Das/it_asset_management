@@ -8,7 +8,8 @@ from app.repositories.technician_repository import TechnicianRepository
 from app.services.ticket_service import TicketService
 from app.models.ticket import Ticket
 from app.repositories.ticket_repository import TicketRepository
-from app.utils.enums import TicketPriority, TicketStatus    
+from app.utils.enums import TicketPriority, TicketStatus   
+from app.exceptions.employee_exceptions import EmployeeNotFoundError, EmployeeAlreadyExistsError
 
 employee = EmployeeRepository()
 service = EmployeeService(employee)
@@ -48,3 +49,19 @@ print()
 # Try assigning to a ticket that doesn't exist — should return None
 missing_ticket = tick.assign_technician(999, 1)
 print(missing_ticket)
+print()
+
+try:
+    ghost = service.get_employee(9999)
+    print(ghost)
+except EmployeeNotFoundError as e:
+    print(f"Caught an error: {e}")
+
+print()
+# broken = service.get_employee(9999)
+# print(broken)
+
+try:
+    duplicate = service.create_employee(1001, "Someone Else", "x@mail.com", "HR")
+except EmployeeAlreadyExistsError as e:
+    print(f"Caught an error: {e}")

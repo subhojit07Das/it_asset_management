@@ -1,72 +1,126 @@
 # IT Asset & Ticket Management System
 
-## Project Overview
+A Python-based IT Asset & Ticket Management System built as a learning and portfolio project.
 
-The IT Asset & Ticket Management System is a Python-based project designed to manage IT assets, employees, technicians, and support tickets.
+The project is being developed incrementally, starting with Python OOP and gradually evolving into a complete backend system with a database, REST API, Docker, CI/CD, and deployment.
 
-The project is being developed incrementally to demonstrate Object-Oriented Programming, business logic, software architecture, testing, database integration, API development, containerization, and CI/CD practices.
+---
 
-## Current Scope
+## Current Status
 
-The system currently supports:
+### Completed
 
-* Employee management
-* IT asset management
+* Python OOP-based domain models
+* Employee management model
+* Asset management model
 * Specialized asset types:
 
   * Laptop
   * Monitor
   * Phone
-* Asset status management:
+* Technician model
+* Ticket model
+* Enum-based asset types and statuses
+* Enum-based ticket priorities and statuses
+* Employee service layer
+* Asset service layer
+* Asset assignment service
+* Technician service layer
+* Ticket service layer
+* In-memory repository layer
+* Repository integration with service layer
+* Basic business-rule validation
+* Dependency injection between services and repositories
+* Git feature-branch workflow
 
-  * Available
-  * Assigned
-  * Repair
-  * Retired
-* Assigning assets to employees
-* Unassigning assets from employees
-* Technician management
-* Support ticket management
-* Ticket priority:
+### Currently Working On
 
-  * Low
-  * Medium
-  * High
-  * Critical
-* Ticket status:
+* Custom exception handling
 
-  * Open
-  * In Progress
-  * Resolved
-  * Closed
-* Assigning technicians to support tickets
-* Automatic ticket transition from `OPEN` to `IN_PROGRESS` when a technician is assigned
-* Preventing technician assignment to tickets that are no longer `OPEN`
+### Planned
 
-## Current Architecture
+* Complete business logic and exception handling
+* CLI interface
+* Automated testing
+* PostgreSQL database
+* FastAPI REST API
+* Docker
+* CI/CD pipeline
+* Deployment
+* Logging and monitoring
 
-The project is being developed in stages.
+---
 
-Current application structure:
+## Project Architecture
+
+The application currently follows a layered architecture:
 
 ```text
-CLI
- ↓
-Services
- ↓
-Models
+CLI / Application
+       ↓
+Service Layer
+       ↓
+Repository Layer
+       ↓
+Domain Models
 ```
 
-Repositories, database persistence, API development, Docker, and CI/CD will be introduced in later stages.
+### Models
+
+The model layer represents the core entities of the system.
+
+Current models:
+
+```text
+Employee
+Asset
+├── Laptop
+├── Monitor
+└── Phone
+Technician
+Ticket
+```
+
+### Services
+
+The service layer contains application and business logic.
+
+Current services:
+
+```text
+EmployeeService
+AssetService
+AssignmentService
+TechnicianService
+TicketService
+```
+
+### Repositories
+
+The repository layer currently provides in-memory data storage using Python dictionaries.
+
+```text
+EmployeeRepository
+AssetRepository
+TechnicianRepository
+TicketRepository
+```
+
+The service layer receives repository objects through dependency injection instead of directly creating repositories.
+
+This keeps business logic separated from the data-storage implementation and will make it easier to replace the in-memory repositories with PostgreSQL later.
+
+---
 
 ## Project Structure
 
 ```text
 it_asset_management/
+│
 ├── app/
-│   ├── __init__.py
 │   ├── exceptions/
 │   │   └── __init__.py
+│   │
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── asset.py
@@ -76,67 +130,339 @@ it_asset_management/
 │   │   ├── phone.py
 │   │   ├── technician.py
 │   │   └── ticket.py
+│   │
 │   ├── repositories/
-│   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── employee_repository.py
+│   │   ├── asset_repository.py
+│   │   ├── technician_repository.py
+│   │   └── ticket_repository.py
+│   │
 │   ├── services/
 │   │   ├── __init__.py
+│   │   ├── employee_service.py
 │   │   ├── asset_service.py
 │   │   ├── assignment_service.py
-│   │   ├── employee_service.py
 │   │   ├── technician_service.py
 │   │   └── ticket_service.py
+│   │
 │   └── utils/
 │       ├── __init__.py
 │       └── enums.py
+│
+├── tests/
+│
 ├── main.py
 ├── README.md
-├── requirements.txt
-└── tests/
+└── requirements.txt
 ```
 
-## Implemented OOP Concepts
+---
 
-The current implementation demonstrates:
+## Core Domain
 
-* Classes and objects
-* Constructors
-* Instance attributes
-* Instance methods
-* Inheritance
-* Method overriding
-* `super()`
-* Composition
-* Python dictionaries for in-memory storage
-* Python lists for object relationships
-* Enumerations using `Enum`
-* Basic business rules
+### Employee
 
-## Development Roadmap
+An employee contains:
 
-The project will be developed through the following stages:
+* Employee ID
+* Name
+* Email
+* Department
+* Assigned assets
 
-1. Python OOP foundation
-2. Business logic / service layer
-3. Repository layer
-4. Custom exceptions
-5. CLI
-6. Testing
-7. PostgreSQL database integration
-8. FastAPI
-9. Docker
-10. CI/CD
-11. Deployment, monitoring, and logging
+Employees can have asset objects assigned to them.
 
-## Current Status
+---
 
-The OOP models and initial business-logic services have been implemented.
+### Asset
 
-The current system uses **in-memory storage**, so data is reset whenever the application stops. Persistent storage will be introduced during the database stage.
+The base `Asset` model contains common asset information:
+
+* Asset ID
+* Asset type
+* Brand
+* Model
+* Serial number
+* Status
+
+Specialized asset classes inherit from the base `Asset` class.
+
+### Laptop
+
+Additional properties:
+
+* RAM
+* Storage
+* Operating system
+
+### Monitor
+
+Additional properties:
+
+* Resolution
+* Screen size
+* Refresh rate
+
+### Phone
+
+Additional properties:
+
+* RAM
+* Storage
+* Operating system
+* Battery
+* Processor
+* Network
+
+---
+
+### Technician
+
+A technician contains:
+
+* Technician ID
+* Name
+* Email
+* Department
+
+Technicians can be assigned to support tickets.
+
+---
+
+### Ticket
+
+A ticket contains:
+
+* Ticket ID
+* Employee
+* Asset
+* Problem
+* Priority
+* Status
+* Assigned technician
+* Comments
+
+The current ticket workflow begins with:
+
+```text
+OPEN
+  ↓
+IN_PROGRESS
+```
+
+Additional ticket workflow functionality will be implemented later.
+
+---
+
+## Asset Assignment
+
+The `AssignmentService` manages the relationship between employees and assets.
+
+Current rules include:
+
+```text
+AVAILABLE → Can be assigned
+ASSIGNED  → Cannot be assigned again
+REPAIR    → Cannot be assigned
+RETIRED   → Cannot be assigned
+```
+
+When an asset is successfully assigned:
+
+```text
+Employee
+   ↓
+assigned_assets
+   ↓
+Asset
+   ↓
+status = ASSIGNED
+```
+
+When an asset is unassigned, its status returns to:
+
+```text
+AVAILABLE
+```
+
+---
+
+## Ticket Management
+
+The current ticket service supports:
+
+* Creating tickets
+* Retrieving tickets
+* Retrieving all tickets
+* Assigning technicians to tickets
+
+Technician assignment currently follows:
+
+```text
+Ticket: OPEN
+      +
+Technician exists
+      ↓
+Technician assigned
+      ↓
+Ticket: IN_PROGRESS
+```
+
+A ticket that is already past the `OPEN` state cannot currently be assigned another technician.
+
+---
+
+## Repository Layer
+
+The repository layer currently uses in-memory dictionaries.
+
+For example:
+
+```text
+EmployeeRepository
+        ↓
+Python Dictionary
+        ↓
+employee_id → Employee object
+```
+
+Repositories currently support:
+
+* Save
+* Get by ID
+* Get all
+* Delete
+* Check existence
+
+The repositories are intentionally kept simple at this stage.
+
+Later, they will be replaced or extended to work with PostgreSQL.
+
+---
+
+## Dependency Injection
+
+Services receive their repositories through their constructors.
+
+Conceptually:
+
+```text
+Repository
+     ↓
+Service
+     ↓
+Business Logic
+```
+
+For example:
+
+```text
+EmployeeRepository
+        ↓
+EmployeeService
+```
+
+This keeps the service layer independent from the specific storage implementation.
+
+---
+
+## Technologies
+
+Current:
+
+* Python
+* Object-Oriented Programming
+* Git
+* GitHub
+* In-memory repositories
+
+Planned:
+
+* PostgreSQL
+* FastAPI
+* Pytest
+* Docker
+* GitHub Actions
+* Linux
+* Deployment platform
+* Logging and monitoring tools
+
+---
 
 ## Git Workflow
 
-The project uses Git throughout development.
+Git is being used throughout the project to practice a realistic development workflow.
 
-Feature branches are used for individual development stages, and completed milestones are committed and pushed before being merged into `main`.
+Feature/topic branches are created for individual milestones.
 
-Release tags will be introduced during the Docker/release stage.
+Examples:
+
+```text
+main
+feature/business-logic
+feature/asset_service
+feature/ticket_service
+feature/repository
+```
+
+Completed feature branches are merged into `main` after testing.
+
+The project will also use Git tags during the Docker/release stage.
+
+---
+
+## Development Roadmap
+
+```text
+1. Python OOP
+      ↓
+2. Business Logic / Services
+      ↓
+3. Repository Layer
+      ↓
+4. Custom Exceptions        ← Current stage
+      ↓
+5. CLI
+      ↓
+6. Testing
+      ↓
+7. PostgreSQL
+      ↓
+8. FastAPI
+      ↓
+9. Docker
+      ↓
+10. CI/CD
+      ↓
+11. Deployment
+      ↓
+12. Logging & Monitoring
+```
+
+---
+
+## Project Goal
+
+The goal of this project is to build the system incrementally while learning how a real-world Python backend application is structured.
+
+The project intentionally starts with simple in-memory objects and gradually introduces additional layers and technologies.
+
+By the end, the system is intended to demonstrate:
+
+* Python OOP
+* Inheritance
+* Composition
+* Encapsulation
+* Service-layer architecture
+* Repository pattern
+* Dependency injection
+* Exception handling
+* Testing
+* PostgreSQL integration
+* REST API development
+* Containerization
+* CI/CD
+* Deployment
+* Logging and monitoring
+* Git-based development workflow
