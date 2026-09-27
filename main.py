@@ -11,6 +11,7 @@ from app.repositories.ticket_repository import TicketRepository
 from app.utils.enums import TicketPriority, TicketStatus   
 from app.exceptions.employee_exceptions import EmployeeNotFoundError, EmployeeAlreadyExistsError
 from app.exceptions.asset_exceptions import AssetAlreadyExistsError, AssetNotFoundError
+from app.exceptions.technician_exceptions import TechnicianNotFoundError, TechnicianAlreadyExistsError
 
 employee = EmployeeRepository()
 service = EmployeeService(employee)
@@ -83,4 +84,20 @@ try:
         ram="8GB", storage="256GB", operating_system="Windows 10"
     )
 except AssetAlreadyExistsError as e:
+    print(f"Caught an error: {e}")
+
+
+    # Test TechnicianNotFoundError — technician_id 999 shouldn't exist
+try:
+    ghost_technician = technician.get_technician(999)
+    print(ghost_technician)
+except TechnicianNotFoundError as e:
+    print(f"Caught an error: {e}")
+
+print()
+
+# Test TechnicianAlreadyExistsError — technician_id 1 already exists
+try:
+    duplicate_technician = technician.create_technician(1, "Someone Else", "y@mail.com", "IT Support")
+except TechnicianAlreadyExistsError as e:
     print(f"Caught an error: {e}")
