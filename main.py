@@ -10,6 +10,7 @@ from app.models.ticket import Ticket
 from app.repositories.ticket_repository import TicketRepository
 from app.utils.enums import TicketPriority, TicketStatus   
 from app.exceptions.employee_exceptions import EmployeeNotFoundError, EmployeeAlreadyExistsError
+from app.exceptions.asset_exceptions import AssetAlreadyExistsError, AssetNotFoundError
 
 employee = EmployeeRepository()
 service = EmployeeService(employee)
@@ -64,4 +65,22 @@ print()
 try:
     duplicate = service.create_employee(1001, "Someone Else", "x@mail.com", "HR")
 except EmployeeAlreadyExistsError as e:
+    print(f"Caught an error: {e}")
+
+# Test AssetNotFoundError — asset_id 999 shouldn't exist
+try:
+    ghost_asset = asset.get_asset(999)
+    print(ghost_asset)
+except AssetNotFoundError as e:
+    print(f"Caught an error: {e}")
+
+print()
+
+# Test AssetAlreadyExistsError — asset_id 1 already exists
+try:
+    duplicate_asset = asset.create_asset(
+        1, AssetType.LAPTOP, "HP", "EliteBook", "SN000000", AssetStatus.AVAILABLE,
+        ram="8GB", storage="256GB", operating_system="Windows 10"
+    )
+except AssetAlreadyExistsError as e:
     print(f"Caught an error: {e}")

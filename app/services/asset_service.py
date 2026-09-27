@@ -4,12 +4,16 @@ from app.models.monitor import Monitor
 from app.models.phone import Phone
 from app.utils.enums import AssetType
 from app.repositories.asset_repository import AssetRepository
+from app.exceptions.asset_exceptions import AssetAlreadyExistsError, AssetNotFoundError
 
 class AssetService:
     def __init__(self, assets: AssetRepository):
         self.assets = assets
 
     def create_asset(self, asset_id, asset_type, brand, model, serial_number, status, **extra_fields):
+        if self.assets.exists(asset_id):
+            raise AssetAlreadyExistsError(f"Asset ID: {asset_id} already exists")
+        
         if asset_type == AssetType.LAPTOP:
             asset = Laptop(asset_id, brand, model, serial_number, status, **extra_fields)
         elif asset_type == AssetType.MONITOR:
@@ -23,12 +27,20 @@ class AssetService:
         return asset
 
     def get_asset(self, asset_id):
-        return self.assets.get_by_id(asset_id)
+        asset = self.assets.get_by_id(asset_id)
+        if asset is None:
+            raise AssetNotFoundError(f"Asset ID: {asset_id} not found.")
+
+        return asset
 
     def get_all_assets(self):
         return self.assets.get_all()
 
     def delete_asset(self, asset_id):
+        asset = self.assets.get_by_id(asset_id)
+        if asset is None:
+            raise AssetNotFoundError(f"Asset ID: {asset_id} not found.")
+
         return self.assets.delete(asset_id)
 
     def check_asset(self, asset_id):
