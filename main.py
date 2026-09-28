@@ -12,16 +12,17 @@ from app.utils.enums import TicketPriority, TicketStatus
 from app.exceptions.employee_exceptions import EmployeeNotFoundError, EmployeeAlreadyExistsError
 from app.exceptions.asset_exceptions import AssetAlreadyExistsError, AssetNotFoundError
 from app.exceptions.technician_exceptions import TechnicianNotFoundError, TechnicianAlreadyExistsError
+from app.services.assignment_service import AssignmentService
+from app.exceptions.assignment_exceptions import AssetNotAvailableError, AssetNotAssignedError, AssetNotAssignedToEmployeeError
 
 employee = EmployeeRepository()
 service = EmployeeService(employee)
 ser1 = AssetRepository()
 asset = AssetService(ser1)
 tech_serv = TechnicianRepository()
-technician = TechnicianService(tech_serv)   # the actual service
-ticket_repo = TicketRepository()             # the actual repository
-tick = TicketService(technician, ticket_repo)  # service gets: (technician_service, ticket_repository)
-
+technician = TechnicianService(tech_serv)   
+ticket_repo = TicketRepository()             
+tick = TicketService(technician, ticket_repo)  
 
 emp1 = service.create_employee(1001, "Aizen", "aizen@mail.com", "IT")
 
@@ -101,3 +102,33 @@ try:
     duplicate_technician = technician.create_technician(1, "Someone Else", "y@mail.com", "IT Support")
 except TechnicianAlreadyExistsError as e:
     print(f"Caught an error: {e}")
+
+assignment = AssignmentService(service, asset)
+
+# Case A: asset 1 has status ASSIGNED but was never added to Aizen's list
+try:
+    assignment.unassign_asset(1001, 1)
+except AssetNotAssignedToEmployeeError as e:
+    print(f"Caught an error: {e}")
+
+print()
+
+# Case B setup: a fresh AVAILABLE asset and a second employee
+spare = asset.create_asset(
+    2, AssetType.LAPTOP, "HP", "EliteBook", "SN000002", AssetStatus.AVAILABLE,
+    ram="8GB", storage="256GB", operating_system="Windows 10"
+)
+other = service.create_employee(1002, "Kurosaki", "kurosaki@mail.com", "HR")
+assignment.assign_asset(1001, 2)
+
+# Case B: a different employee tries to unassign Aizen's asset
+try:
+    assignment.unassign_asset(1002, 2)
+except AssetNotAssignedToEmployeeError as e:
+    print(f"Caught an error: {e}")
+
+print()
+
+# Case C: the rightful owner unassigns it, which should succeed
+result = assignment.unassign_asset(1001, 2)
+print(f"Unassigned: {result.status}")
