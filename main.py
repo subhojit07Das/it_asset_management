@@ -14,6 +14,7 @@ from app.exceptions.asset_exceptions import AssetAlreadyExistsError, AssetNotFou
 from app.exceptions.technician_exceptions import TechnicianNotFoundError, TechnicianAlreadyExistsError
 from app.services.assignment_service import AssignmentService
 from app.exceptions.assignment_exceptions import AssetNotAvailableError, AssetNotAssignedError, AssetNotAssignedToEmployeeError
+from app.exceptions.ticket_exceptions import TicketNotFoundError, TicketNotOpenError, TicketAlreadyExistsError
 
 employee = EmployeeRepository()
 service = EmployeeService(employee)
@@ -41,17 +42,46 @@ ticket1 = tick.create_ticket(
 
 print(ticket1)
 
+print(ticket1)
+print()
+
 assigned = tick.assign_technician(1, 1)
-print(assigned)
+print(f"Status after assignment: {assigned.status}")
+
 print()
 
-already_assigned = tick.assign_technician(1, 1)
-print(already_assigned)
+# Ticket 1 is now IN_PROGRESS, so assigning again should fail
+try:
+    tick.assign_technician(1, 1)
+except TicketNotOpenError as e:
+    print(f"Caught an error: {e}")
+
 print()
 
-# Try assigning to a ticket that doesn't exist — should return None
-missing_ticket = tick.assign_technician(999, 1)
-print(missing_ticket)
+# Ticket 999 doesn't exist
+try:
+    tick.assign_technician(999, 1)
+except TicketNotFoundError as e:
+    print(f"Caught an error: {e}")
+
+print()
+
+# Ticket exists, technician 999 doesn't
+try:
+    tick.assign_technician(1, 999)
+except TechnicianNotFoundError as e:
+    print(f"Caught an error: {e}")
+
+print()
+
+# Ticket ID 1 already exists, so creating it again should fail
+try:
+    tick.create_ticket(
+        1, emp1, new_asset1, "Duplicate ticket", TicketPriority.LOW, TicketStatus.OPEN
+    )
+except TicketAlreadyExistsError as e:
+    print(f"Caught an error: {e}")
+
 print()
 
 try:
