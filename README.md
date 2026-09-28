@@ -29,18 +29,23 @@ The project is being developed incrementally, starting with Python OOP and gradu
 * Ticket service layer
 * In-memory repository layer
 * Repository integration with service layer
-* Basic business-rule validation
 * Dependency injection between services and repositories
+* Business-rule validation
+* Custom domain-specific exceptions
+* Exception handling for Employee operations
+* Exception handling for Asset operations
+* Exception handling for Technician operations
+* Exception handling for Asset Assignment operations
+* Exception handling for Ticket operations
 * Git feature-branch workflow
 
 ### Currently Working On
 
-* Custom exception handling
+* CLI interface
 
 ### Planned
 
-* Complete business logic and exception handling
-* CLI interface
+* Complete CLI functionality
 * Automated testing
 * PostgreSQL database
 * FastAPI REST API
@@ -110,6 +115,38 @@ The service layer receives repository objects through dependency injection inste
 
 This keeps business logic separated from the data-storage implementation and will make it easier to replace the in-memory repositories with PostgreSQL later.
 
+### Exceptions
+
+The exception layer contains custom domain-specific exceptions used by the service layer.
+
+The current exception categories include:
+
+```text
+Employee
+├── EmployeeNotFoundError
+└── EmployeeAlreadyExistsError
+
+Asset
+├── AssetNotFoundError
+└── AssetAlreadyExistsError
+
+Technician
+├── TechnicianNotFoundError
+└── TechnicianAlreadyExistsError
+
+Assignment
+├── AssetNotAvailableError
+├── AssetNotAssignedError
+└── AssetNotAssignedToEmployeeError
+
+Ticket
+├── TicketNotFoundError
+├── TicketNotOpenError
+└── TicketAlreadyExistsError
+```
+
+These exceptions allow the service layer to communicate specific business-rule failures instead of relying on generic `None` return values.
+
 ---
 
 ## Project Structure
@@ -119,7 +156,12 @@ it_asset_management/
 │
 ├── app/
 │   ├── exceptions/
-│   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── employee_exceptions.py
+│   │   ├── asset_exceptions.py
+│   │   ├── technician_exceptions.py
+│   │   ├── assignment_exceptions.py
+│   │   └── ticket_exceptions.py
 │   │
 │   ├── models/
 │   │   ├── __init__.py
@@ -243,7 +285,7 @@ A ticket contains:
 * Assigned technician
 * Comments
 
-The current ticket workflow begins with:
+The currently implemented ticket workflow begins with:
 
 ```text
 OPEN
@@ -251,7 +293,7 @@ OPEN
 IN_PROGRESS
 ```
 
-Additional ticket workflow functionality will be implemented later.
+Additional ticket workflow functionality will be implemented as the project develops.
 
 ---
 
@@ -268,6 +310,8 @@ REPAIR    → Cannot be assigned
 RETIRED   → Cannot be assigned
 ```
 
+An asset can only be unassigned when it is currently assigned and belongs to the specified employee.
+
 When an asset is successfully assigned:
 
 ```text
@@ -280,11 +324,15 @@ Asset
 status = ASSIGNED
 ```
 
-When an asset is unassigned, its status returns to:
+When an asset is successfully unassigned:
 
 ```text
-AVAILABLE
+Asset
+   ↓
+status = AVAILABLE
 ```
+
+Invalid assignment operations raise domain-specific exceptions.
 
 ---
 
@@ -297,7 +345,7 @@ The current ticket service supports:
 * Retrieving all tickets
 * Assigning technicians to tickets
 
-Technician assignment currently follows:
+Technician assignment follows:
 
 ```text
 Ticket: OPEN
@@ -309,7 +357,52 @@ Technician assigned
 Ticket: IN_PROGRESS
 ```
 
-A ticket that is already past the `OPEN` state cannot currently be assigned another technician.
+The current implementation prevents technician assignment when the ticket is no longer `OPEN`.
+
+Invalid ticket operations raise domain-specific exceptions.
+
+---
+
+## Exception Handling
+
+The project uses custom exceptions to represent domain-specific errors.
+
+Examples include:
+
+```text
+EmployeeNotFoundError
+EmployeeAlreadyExistsError
+
+AssetNotFoundError
+AssetAlreadyExistsError
+
+TechnicianNotFoundError
+TechnicianAlreadyExistsError
+
+AssetNotAvailableError
+AssetNotAssignedError
+AssetNotAssignedToEmployeeError
+
+TicketNotFoundError
+TicketNotOpenError
+TicketAlreadyExistsError
+```
+
+The general flow is:
+
+```text
+Repository
+    ↓
+Service checks business rule
+    ↓
+Invalid operation
+    ↓
+Domain-specific exception
+    ↓
+Application / CLI handles the exception
+```
+
+This keeps business-rule validation inside the service layer while allowing the application layer to decide how errors should be presented to the user.
 
 ---
 
@@ -317,7 +410,7 @@ A ticket that is already past the `OPEN` state cannot currently be assigned anot
 
 The repository layer currently uses in-memory dictionaries.
 
-For example:
+Conceptually:
 
 ```text
 EmployeeRepository
@@ -327,7 +420,7 @@ Python Dictionary
 employee_id → Employee object
 ```
 
-Repositories currently support:
+Each repository currently supports:
 
 * Save
 * Get by ID
@@ -335,9 +428,9 @@ Repositories currently support:
 * Delete
 * Check existence
 
-The repositories are intentionally kept simple at this stage.
+The repositories are intentionally simple at this stage.
 
-Later, they will be replaced or extended to work with PostgreSQL.
+Later, the repository layer will be adapted to work with PostgreSQL.
 
 ---
 
@@ -369,7 +462,7 @@ This keeps the service layer independent from the specific storage implementatio
 
 ## Technologies
 
-Current:
+### Current
 
 * Python
 * Object-Oriented Programming
@@ -377,11 +470,11 @@ Current:
 * GitHub
 * In-memory repositories
 
-Planned:
+### Planned
 
+* Pytest
 * PostgreSQL
 * FastAPI
-* Pytest
 * Docker
 * GitHub Actions
 * Linux
@@ -404,11 +497,22 @@ feature/business-logic
 feature/asset_service
 feature/ticket_service
 feature/repository
+feature/exceptions
 ```
 
 Completed feature branches are merged into `main` after testing.
 
 The project will also use Git tags during the Docker/release stage.
+
+### Current Exception Milestone
+
+The custom exception milestone has been implemented and integrated into the service layer.
+
+The latest milestone commit is:
+
+```text
+753e30a Add ticket exceptions; enforce in TicketService; update main.py tests
+```
 
 ---
 
@@ -421,9 +525,9 @@ The project will also use Git tags during the Docker/release stage.
       ↓
 3. Repository Layer
       ↓
-4. Custom Exceptions        ← Current stage
+4. Custom Exceptions
       ↓
-5. CLI
+5. CLI                    ← NEXT
       ↓
 6. Testing
       ↓
@@ -457,8 +561,8 @@ By the end, the system is intended to demonstrate:
 * Service-layer architecture
 * Repository pattern
 * Dependency injection
-* Exception handling
-* Testing
+* Custom exception handling
+* Automated testing
 * PostgreSQL integration
 * REST API development
 * Containerization
