@@ -72,3 +72,14 @@ def test_assign_technician_missing_technician_raises(ticket_service):
 
     with pytest.raises(TechnicianNotFoundError):
         ticket_service.assign_technician(ticket.ticket_id, 999)
+
+def test_get_all_tickets(ticket_service):
+    ticket = ticket_service.create_ticket(1, "employee_placeholder", "asset_placeholder", "Laptop won't boot", TicketPriority.HIGH, TicketStatus.OPEN)
+
+    ticket2 = ticket_service.create_ticket(2, "employee_placeholder", "asset_placeholder", "Mobile won't start", TicketPriority.LOW, TicketStatus.OPEN)
+
+    all_tickets = list(ticket_service.get_all_tickets())
+
+    assert len(all_tickets) == 2
+    assert ticket in all_tickets
+    assert ticket2 in all_tickets

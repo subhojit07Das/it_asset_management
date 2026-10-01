@@ -37,3 +37,14 @@ def test_check_technician(service):
 
     assert service.check_technician(100) is True
     assert service.check_technician(2000) is False
+
+def test_get_all_technicians(service):
+    technician = service.create_technician(100, "Tech1", "tech1@mail.com", "IT Support")
+
+    technician1 = service.create_technician(101, "Techy2", "techy2@mail.com", "IT Support")
+
+    all_technicians = list(service.get_all_technicians())
+
+    assert len(all_technicians) == 2
+    assert technician in all_technicians
+    assert technician1 in all_technicians

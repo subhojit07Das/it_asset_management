@@ -6,6 +6,8 @@ from app.services.asset_service import AssetService
 from app.services.assignment_service import AssignmentService
 from app.utils.enums import AssetStatus, AssetType
 from app.exceptions.assignment_exceptions import AssetNotAssignedError, AssetNotAssignedToEmployeeError, AssetNotAvailableError
+from app.exceptions.employee_exceptions import EmployeeNotFoundError
+from app.exceptions.asset_exceptions import AssetNotFoundError
 
 @pytest.fixture
 def employee_repo():
@@ -66,3 +68,15 @@ def test_unassign_asset_wrong_employee_raises(assignment_service, employee_servi
 
     with pytest.raises(AssetNotAssignedToEmployeeError):
         assignment_service.unassign_asset(employee2.employee_id, asset.asset_id)
+
+def test_assign_asset_missing_employee_raises(assignment_service, asset_service):
+    asset = asset_service.create_asset(1, AssetType.MONITOR, "HP", "HP Omen HyperX", "SN789543", AssetStatus.AVAILABLE, resolution="1920x1080px", screen_size="32 Inches", refresh_rate="60 hz")
+
+    with pytest.raises(EmployeeNotFoundError):
+        assignment_service.assign_asset(9999, asset.asset_id)
+
+def test_assign_asset_missing_asset_raises(employee_service, assignment_service):
+    employee = employee_service.create_employee(1001, "Aizen", "aizen@mail.com", "IT")
+
+    with pytest.raises(AssetNotFoundError):
+        assignment_service.assign_asset(employee.employee_id, 9999)

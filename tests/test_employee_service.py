@@ -27,3 +27,16 @@ def test_create_employee_duplicate_id_raise(service):
 def test_get_employee_missing_id(service):
     with pytest.raises(EmployeeNotFoundError):
         service.get_employee(9999)
+
+def test_get_all_employees(service):
+    employee = service.create_employee(1001, "Aizen", "aizen@mail.com", "IT")
+
+    employee2 = service.create_employee(1002, "Itachi", "itachi@mail.com", "DevOps")
+
+    all_employees = list(service.get_all_employees())
+
+    assert len(all_employees) == 2
+    assert employee.name == "Aizen"
+    assert employee2.name == "Itachi"
+    assert employee in all_employees
+    assert employee2 in all_employees
