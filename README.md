@@ -1,8 +1,8 @@
 # IT Asset & Ticket Management System
 
-A Python-based IT Asset & Ticket Management System built as a learning and portfolio project.
+A Python IT Asset & Ticket Management System built as a learning and portfolio project.
 
-The project is being developed incrementally, starting with Python OOP and gradually evolving into a complete backend system with a database, REST API, Docker, CI/CD, and deployment.
+The project is being developed incrementally: it starts with Python OOP and a layered architecture, and gradually evolves into a complete backend system with a database, REST API, Docker, CI/CD, and deployment.
 
 ---
 
@@ -11,46 +11,23 @@ The project is being developed incrementally, starting with Python OOP and gradu
 ### Completed
 
 * Python OOP-based domain models
-* Employee management model
-* Asset management model
-* Specialized asset types:
-
-  * Laptop
-  * Monitor
-  * Phone
-* Technician model
-* Ticket model
-* Enum-based asset types and statuses
-* Enum-based ticket priorities and statuses
-* Employee service layer
-* Asset service layer
-* Asset assignment service
-* Technician service layer
-* Ticket service layer
+* Specialized asset types (Laptop, Monitor, Phone) using inheritance
+* Enum-based asset types/statuses and ticket priorities/statuses
+* Service layer for employees, assets, technicians, tickets, and asset assignment
 * In-memory repository layer
-* Repository integration with service layer
 * Dependency injection between services and repositories
 * Business-rule validation
 * Custom domain-specific exceptions
-* Exception handling for Employee operations
-* Exception handling for Asset operations
-* Exception handling for Technician operations
-* Exception handling for Asset Assignment operations
-* Exception handling for Ticket operations
+* Automated unit tests with pytest (30 tests)
 * Git feature-branch workflow
-
-### Currently Working On
-
-* CLI interface
 
 ### Planned
 
-* Complete CLI functionality
-* Automated testing
+* CLI interface
 * PostgreSQL database
 * FastAPI REST API
 * Docker
-* CI/CD pipeline
+* CI/CD pipeline (GitHub Actions)
 * Deployment
 * Logging and monitoring
 
@@ -58,23 +35,19 @@ The project is being developed incrementally, starting with Python OOP and gradu
 
 ## Project Architecture
 
-The application currently follows a layered architecture:
+The application follows a layered architecture:
 
 ```text
-CLI / Application
+Application (main.py demo / future CLI / future API)
        ↓
-Service Layer
+Service Layer        → business rules and validation
        ↓
-Repository Layer
+Repository Layer     → data storage (in-memory for now)
        ↓
-Domain Models
+Domain Models        → Employee, Asset, Ticket, ...
 ```
 
 ### Models
-
-The model layer represents the core entities of the system.
-
-Current models:
 
 ```text
 Employee
@@ -88,10 +61,6 @@ Ticket
 
 ### Services
 
-The service layer contains application and business logic.
-
-Current services:
-
 ```text
 EmployeeService
 AssetService
@@ -102,8 +71,6 @@ TicketService
 
 ### Repositories
 
-The repository layer currently provides in-memory data storage using Python dictionaries.
-
 ```text
 EmployeeRepository
 AssetRepository
@@ -111,15 +78,135 @@ TechnicianRepository
 TicketRepository
 ```
 
-The service layer receives repository objects through dependency injection instead of directly creating repositories.
+Each repository stores objects in a Python dictionary (`id → object`) and supports: save, get by ID, get all, delete, and exists.
 
-This keeps business logic separated from the data-storage implementation and will make it easier to replace the in-memory repositories with PostgreSQL later.
+Services receive their repositories through their constructors (dependency injection) instead of creating them internally. This keeps business logic independent of the storage implementation, so the in-memory repositories can later be replaced with PostgreSQL without rewriting the services.
 
-### Exceptions
+---
 
-The exception layer contains custom domain-specific exceptions used by the service layer.
+## Project Structure
 
-The current exception categories include:
+```text
+it_asset_management/
+│
+├── app/
+│   ├── exceptions/
+│   │   ├── asset_exceptions.py
+│   │   ├── assignment_exceptions.py
+│   │   ├── employee_exceptions.py
+│   │   ├── technician_exceptions.py
+│   │   └── ticket_exceptions.py
+│   │
+│   ├── models/
+│   │   ├── asset.py
+│   │   ├── employee.py
+│   │   ├── laptop.py
+│   │   ├── monitor.py
+│   │   ├── phone.py
+│   │   ├── technician.py
+│   │   └── ticket.py
+│   │
+│   ├── repositories/
+│   │   ├── asset_repository.py
+│   │   ├── employee_repository.py
+│   │   ├── technician_repository.py
+│   │   └── ticket_repository.py
+│   │
+│   ├── services/
+│   │   ├── asset_service.py
+│   │   ├── assignment_service.py
+│   │   ├── employee_service.py
+│   │   ├── technician_service.py
+│   │   └── ticket_service.py
+│   │
+│   └── utils/
+│       └── enums.py
+│
+├── tests/
+│   ├── test_asset_service.py
+│   ├── test_assignment_service.py
+│   ├── test_employee_service.py
+│   ├── test_technician_service.py
+│   └── test_ticket_service.py
+│
+├── main.py
+├── README.md
+├── requirements.txt
+└── .gitignore
+```
+
+---
+
+## Core Domain
+
+### Employee
+
+* Employee ID, name, email, department
+* A list of assigned assets
+
+### Asset
+
+The base `Asset` class holds the common fields:
+
+* Asset ID, asset type, brand, model, serial number, status
+
+Specialized classes inherit from `Asset` and add their own properties:
+
+| Class | Additional properties |
+|-------|----------------------|
+| `Laptop` | RAM, storage, operating system |
+| `Monitor` | Resolution, screen size, refresh rate |
+| `Phone` | RAM, storage, operating system, battery, processor, network |
+
+`AssetService.create_asset()` builds the correct subclass based on the `AssetType` enum.
+
+### Technician
+
+* Technician ID, name, email, department
+* Can be assigned to support tickets
+
+### Ticket
+
+* Ticket ID, employee, asset, problem, priority, status
+* Assigned technician and a list of comments
+
+---
+
+## Business Rules
+
+### Asset Assignment
+
+`AssignmentService` manages the relationship between employees and assets.
+
+```text
+AVAILABLE → can be assigned
+ASSIGNED  → cannot be assigned again
+REPAIR    → cannot be assigned
+RETIRED   → cannot be assigned
+```
+
+* Assigning an asset adds it to the employee's `assigned_assets` and sets its status to `ASSIGNED`.
+* An asset can only be unassigned if it is currently `ASSIGNED` **and** belongs to the specified employee. Unassigning sets its status back to `AVAILABLE`.
+
+### Ticket Workflow
+
+```text
+OPEN  +  technician exists
+        ↓
+technician assigned
+        ↓
+IN_PROGRESS
+```
+
+Technician assignment is rejected if the ticket does not exist, the technician does not exist, or the ticket is no longer `OPEN`.
+
+The `RESOLVED` and `CLOSED` statuses are defined in the enum; the transitions into them will be added as the workflow is extended.
+
+---
+
+## Exception Handling
+
+Instead of returning `None` or generic errors, the service layer raises domain-specific exceptions:
 
 ```text
 Employee
@@ -145,318 +232,90 @@ Ticket
 └── TicketAlreadyExistsError
 ```
 
-These exceptions allow the service layer to communicate specific business-rule failures instead of relying on generic `None` return values.
-
----
-
-## Project Structure
+General flow:
 
 ```text
-it_asset_management/
-│
-├── app/
-│   ├── exceptions/
-│   │   ├── __init__.py
-│   │   ├── employee_exceptions.py
-│   │   ├── asset_exceptions.py
-│   │   ├── technician_exceptions.py
-│   │   ├── assignment_exceptions.py
-│   │   └── ticket_exceptions.py
-│   │
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── asset.py
-│   │   ├── employee.py
-│   │   ├── laptop.py
-│   │   ├── monitor.py
-│   │   ├── phone.py
-│   │   ├── technician.py
-│   │   └── ticket.py
-│   │
-│   ├── repositories/
-│   │   ├── __init__.py
-│   │   ├── employee_repository.py
-│   │   ├── asset_repository.py
-│   │   ├── technician_repository.py
-│   │   └── ticket_repository.py
-│   │
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── employee_service.py
-│   │   ├── asset_service.py
-│   │   ├── assignment_service.py
-│   │   ├── technician_service.py
-│   │   └── ticket_service.py
-│   │
-│   └── utils/
-│       ├── __init__.py
-│       └── enums.py
-│
-├── tests/
-│
-├── main.py
-├── README.md
-└── requirements.txt
-```
-
----
-
-## Core Domain
-
-### Employee
-
-An employee contains:
-
-* Employee ID
-* Name
-* Email
-* Department
-* Assigned assets
-
-Employees can have asset objects assigned to them.
-
----
-
-### Asset
-
-The base `Asset` model contains common asset information:
-
-* Asset ID
-* Asset type
-* Brand
-* Model
-* Serial number
-* Status
-
-Specialized asset classes inherit from the base `Asset` class.
-
-### Laptop
-
-Additional properties:
-
-* RAM
-* Storage
-* Operating system
-
-### Monitor
-
-Additional properties:
-
-* Resolution
-* Screen size
-* Refresh rate
-
-### Phone
-
-Additional properties:
-
-* RAM
-* Storage
-* Operating system
-* Battery
-* Processor
-* Network
-
----
-
-### Technician
-
-A technician contains:
-
-* Technician ID
-* Name
-* Email
-* Department
-
-Technicians can be assigned to support tickets.
-
----
-
-### Ticket
-
-A ticket contains:
-
-* Ticket ID
-* Employee
-* Asset
-* Problem
-* Priority
-* Status
-* Assigned technician
-* Comments
-
-The currently implemented ticket workflow begins with:
-
-```text
-OPEN
-  ↓
-IN_PROGRESS
-```
-
-Additional ticket workflow functionality will be implemented as the project develops.
-
----
-
-## Asset Assignment
-
-The `AssignmentService` manages the relationship between employees and assets.
-
-Current rules include:
-
-```text
-AVAILABLE → Can be assigned
-ASSIGNED  → Cannot be assigned again
-REPAIR    → Cannot be assigned
-RETIRED   → Cannot be assigned
-```
-
-An asset can only be unassigned when it is currently assigned and belongs to the specified employee.
-
-When an asset is successfully assigned:
-
-```text
-Employee
-   ↓
-assigned_assets
-   ↓
-Asset
-   ↓
-status = ASSIGNED
-```
-
-When an asset is successfully unassigned:
-
-```text
-Asset
-   ↓
-status = AVAILABLE
-```
-
-Invalid assignment operations raise domain-specific exceptions.
-
----
-
-## Ticket Management
-
-The current ticket service supports:
-
-* Creating tickets
-* Retrieving tickets
-* Retrieving all tickets
-* Assigning technicians to tickets
-
-Technician assignment follows:
-
-```text
-Ticket: OPEN
-      +
-Technician exists
-      ↓
-Technician assigned
-      ↓
-Ticket: IN_PROGRESS
-```
-
-The current implementation prevents technician assignment when the ticket is no longer `OPEN`.
-
-Invalid ticket operations raise domain-specific exceptions.
-
----
-
-## Exception Handling
-
-The project uses custom exceptions to represent domain-specific errors.
-
-Examples include:
-
-```text
-EmployeeNotFoundError
-EmployeeAlreadyExistsError
-
-AssetNotFoundError
-AssetAlreadyExistsError
-
-TechnicianNotFoundError
-TechnicianAlreadyExistsError
-
-AssetNotAvailableError
-AssetNotAssignedError
-AssetNotAssignedToEmployeeError
-
-TicketNotFoundError
-TicketNotOpenError
-TicketAlreadyExistsError
-```
-
-The general flow is:
-
-```text
-Repository
-    ↓
-Service checks business rule
-    ↓
-Invalid operation
-    ↓
-Domain-specific exception
-    ↓
-Application / CLI handles the exception
-```
-
-This keeps business-rule validation inside the service layer while allowing the application layer to decide how errors should be presented to the user.
-
----
-
-## Repository Layer
-
-The repository layer currently uses in-memory dictionaries.
-
-Conceptually:
-
-```text
-EmployeeRepository
+Service checks a business rule
         ↓
-Python Dictionary
+Rule violated
         ↓
-employee_id → Employee object
+Domain-specific exception raised
+        ↓
+Calling layer (CLI / API) decides how to present the error
 ```
-
-Each repository currently supports:
-
-* Save
-* Get by ID
-* Get all
-* Delete
-* Check existence
-
-The repositories are intentionally simple at this stage.
-
-Later, the repository layer will be adapted to work with PostgreSQL.
 
 ---
 
-## Dependency Injection
+## Testing
 
-Services receive their repositories through their constructors.
-
-Conceptually:
+Automated tests are written with **pytest** and cover the service layer, including every custom exception path.
 
 ```text
-Repository
-     ↓
-Service
-     ↓
-Business Logic
+tests/
+├── test_asset_service.py        (7 tests)
+├── test_assignment_service.py   (6 tests)
+├── test_employee_service.py     (4 tests)
+├── test_technician_service.py   (6 tests)
+└── test_ticket_service.py       (7 tests)
+                                 ────────
+                                 30 tests
 ```
 
-For example:
+### What is tested
 
-```text
-EmployeeRepository
-        ↓
-EmployeeService
+* **Employees / Technicians / Assets:** creation, duplicate-ID rejection, lookup of missing IDs, deletion of missing IDs, existence checks, and listing all records (`get_all_*`)
+* **Asset types:** creation of each specialized asset type (Laptop, Monitor, Phone), including the Phone-specific fields
+* **Assignment:** successful assignment, assigning an unavailable asset, assigning to a missing employee, assigning a missing asset, unassigning an asset that is not assigned, unassigning an asset belonging to a different employee
+* **Tickets:** creation, duplicate-ID rejection, listing all tickets, technician assignment success, assignment to a non-open ticket, missing ticket, missing technician
+
+### Testing approach
+
+* **Fixtures** build a fresh repository and service for every test, so tests never share state.
+* Fixtures are chained (repository → service → assignment service), mirroring the dependency injection used in the application.
+* `pytest.raises` verifies that the correct exception is raised for each business-rule violation.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+* Python 3.10+
+* Git
+
+### Setup
+
+```bash
+git clone https://github.com/subhojit07Das/it_asset_management.git
+cd it_asset_management
+
+python -m venv venv
+source venv/bin/activate        # Linux / macOS
+# venv\Scripts\activate         # Windows
+
+pip install -r requirements.txt
 ```
 
-This keeps the service layer independent from the specific storage implementation.
+### Run the demo script
+
+```bash
+python main.py
+```
+
+`main.py` is a demonstration script that exercises the services and prints the result of each business-rule check.
+
+### Run the tests
+
+```bash
+pytest
+```
+
+Useful options:
+
+```bash
+pytest -v                                  # verbose output
+pytest tests/test_ticket_service.py        # a single test file
+```
 
 ---
 
@@ -466,13 +325,12 @@ This keeps the service layer independent from the specific storage implementatio
 
 * Python
 * Object-Oriented Programming
-* Git
-* GitHub
+* Pytest
+* Git & GitHub
 * In-memory repositories
 
 ### Planned
 
-* Pytest
 * PostgreSQL
 * FastAPI
 * Docker
@@ -485,11 +343,7 @@ This keeps the service layer independent from the specific storage implementatio
 
 ## Git Workflow
 
-Git is being used throughout the project to practice a realistic development workflow.
-
-Feature/topic branches are created for individual milestones.
-
-Examples:
+Feature/topic branches are created for individual milestones and merged into `main` after testing.
 
 ```text
 main
@@ -500,36 +354,24 @@ feature/repository
 feature/exceptions
 ```
 
-Completed feature branches are merged into `main` after testing.
-
-The project will also use Git tags during the Docker/release stage.
-
-### Current Exception Milestone
-
-The custom exception milestone has been implemented and integrated into the service layer.
-
-The latest milestone commit is:
-
-```text
-753e30a Add ticket exceptions; enforce in TicketService; update main.py tests
-```
+Git tags will be used during the Docker/release stage.
 
 ---
 
 ## Development Roadmap
 
 ```text
-1. Python OOP
+1. Python OOP                      ✅
       ↓
-2. Business Logic / Services
+2. Business Logic / Services       ✅
       ↓
-3. Repository Layer
+3. Repository Layer                ✅
       ↓
-4. Custom Exceptions
+4. Custom Exceptions               ✅
       ↓
-5. CLI                    ← NEXT
+5. Automated Testing (pytest)      ✅
       ↓
-6. Testing
+6. CLI                             ← NEXT
       ↓
 7. PostgreSQL
       ↓
@@ -550,17 +392,11 @@ The latest milestone commit is:
 
 The goal of this project is to build the system incrementally while learning how a real-world Python backend application is structured.
 
-The project intentionally starts with simple in-memory objects and gradually introduces additional layers and technologies.
-
 By the end, the system is intended to demonstrate:
 
-* Python OOP
-* Inheritance
-* Composition
-* Encapsulation
+* Python OOP: inheritance, composition, encapsulation
 * Service-layer architecture
-* Repository pattern
-* Dependency injection
+* Repository pattern and dependency injection
 * Custom exception handling
 * Automated testing
 * PostgreSQL integration
