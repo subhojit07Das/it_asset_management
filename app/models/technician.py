@@ -6,4 +6,4 @@ class Technician:
         self.department = department
 
     def __str__(self):
-        return f"Technician ID: {self.technician_id} \nName: {self.name} \nEmail: {self.email} \nDepartment: {self.department}"
+        return f"Technician({self.technician_id}) - Name: {self.name} - Email: {self.email} - Department: {self.department}"
