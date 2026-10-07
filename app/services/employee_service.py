@@ -8,7 +8,7 @@ class EmployeeService:
 
     def create_employee(self, employee_id, name, email, department):
         if self.employees.exists(employee_id):
-            raise EmployeeAlreadyExistsError(f"Employee with {employee_id} already exists.")
+            raise EmployeeAlreadyExistsError(f"Employee with ID: {employee_id} already exists.")
         
         employee = Employee(employee_id, name, email, department)
 

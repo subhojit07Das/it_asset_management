@@ -1,7 +1,8 @@
 from app.utils.enums import TicketStatus
 from app.repositories.ticket_repository import TicketRepository
 from app.models.ticket import Ticket
-from app.exceptions.ticket_exceptions import TicketNotFoundError, TicketNotOpenError, TicketAlreadyExistsError
+from app.exceptions.ticket_exceptions import TicketNotFoundError, TicketNotOpenError, TicketAlreadyExistsError, CommentEmptyError, TicketClosedError, TicketNotInProgressError, TechnicianNotAssignedError
+from app.models.comment import Comment
 
 class TicketService:
     def __init__(self, technician_service, tickets: TicketRepository):
@@ -38,4 +39,32 @@ class TicketService:
         ticket.add_technician(technician)
         ticket.status = TicketStatus.IN_PROGRESS
         return ticket
-    
+
+    def add_comment(self, ticket_id, text, author_name, author_role):
+        ticket = self.get_ticket(ticket_id)
+        text = text.strip()
+
+        if not text:
+            raise CommentEmptyError(f"Cannot add an empty comment to ticket ID: {ticket_id}.")
+
+        if ticket.status == TicketStatus.CLOSED:
+            raise TicketClosedError(f"Ticket ID: {ticket_id} is closed.")
+
+        comment = Comment(text, author_name, author_role)
+        ticket.add_comment(comment)
+
+        return ticket
+
+    def resolve_ticket(self, ticket_id, technician_id):
+        ticket = self.get_ticket(ticket_id)
+        technician = self.technician_service.get_technician(technician_id)
+
+        if ticket.status != TicketStatus.IN_PROGRESS:
+            raise TicketNotInProgressError(f"Ticket ID: {ticket_id} is not in progress")
+
+        if ticket.technician.technician_id != technician_id:
+            raise TechnicianNotAssignedError(f"Technician ID: {technician_id} is not assigned for Ticket ID: {ticket_id} ")
+
+        ticket.status = TicketStatus.RESOLVED
+
+        return ticket
