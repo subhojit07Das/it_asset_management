@@ -174,3 +174,20 @@ def get_valid_ticket_status(prompt):
 
         else:
             print("Invalid status. Please enter open, in progress, resolved, or closed.")
+
+def get_valid_yes_no(prompt):
+    while True:
+        value = input(prompt).strip().lower()
+
+        if value == "c":
+            print("Cancelled.")
+            return None
+
+        if value == "yes":
+            return True
+
+        if value == "no":
+            return False
+
+        print("Please enter yes or no (or 'c' to cancel).")
+        
