@@ -1,7 +1,9 @@
 from app.utils.enums import TicketStatus
 from app.repositories.ticket_repository import TicketRepository
 from app.models.ticket import Ticket
-from app.exceptions.ticket_exceptions import TicketNotFoundError, TicketNotOpenError, TicketAlreadyExistsError, CommentEmptyError, TicketClosedError, TicketNotInProgressError, TechnicianNotAssignedError
+from app.exceptions.ticket_exceptions import (
+    TicketNotFoundError, TicketNotOpenError, TicketAlreadyExistsError, CommentEmptyError, TicketClosedError, TicketNotInProgressError, TechnicianNotAssignedError, TicketNotConfirmedError, TicketNotResolvedError,
+    EmployeeNotTicketOwnerError, TicketAlreadyConfirmedError)
 from app.models.comment import Comment
 
 class TicketService:
@@ -66,5 +68,49 @@ class TicketService:
             raise TechnicianNotAssignedError(f"Technician ID: {technician_id} is not assigned for Ticket ID: {ticket_id} ")
 
         ticket.status = TicketStatus.RESOLVED
+
+        return ticket
+
+    def close_ticket(self, ticket_id, technician_id):
+        ticket = self.get_ticket(ticket_id)
+        technician = self.technician_service.get_technician(technician_id)
+
+        if ticket.status != TicketStatus.RESOLVED:
+            raise TicketNotResolvedError(f"Ticket ID: {ticket_id} is not resolved. Current Ticket ID status: {ticket.status}")
+
+        if ticket.technician.technician_id != technician_id:
+            raise TechnicianNotAssignedError(f"Technician ID: {technician_id} is not assigned for Ticket ID: {ticket_id} ")
+
+        if not ticket.confirmed:
+            raise TicketNotConfirmedError(f"Ticket ID: {ticket_id} is not yet confirmed.")
+
+        ticket.status = TicketStatus.CLOSED
+
+        return ticket
+
+    def confirm_resolution(self, ticket_id, employee_id, is_fixed, comment):
+        ticket = self.get_ticket(ticket_id)
+
+        if ticket.status != TicketStatus.RESOLVED:
+            raise TicketNotResolvedError(f"Ticket ID: {ticket_id} is not resolved.")
+
+        if ticket.employee.employee_id != employee_id:
+            raise EmployeeNotTicketOwnerError(f"Employee ID: {employee_id} does not own the ticket.")
+
+        if ticket.confirmed:
+            raise TicketAlreadyConfirmedError(f"Ticket ID: {ticket_id} is already confirmed.")
+
+        comment = (comment or "").strip()
+
+        if not is_fixed and not comment:
+            raise CommentEmptyError(f"Cannot add an empty comment to ticket ID: {ticket_id}. A comment is required when the problem is not fixed.")
+
+        if comment:
+            ticket.add_comment(Comment(comment, ticket.employee.name, "Employee"))
+
+        if is_fixed:
+            ticket.confirmed = True
+        else:
+            ticket.status = TicketStatus.IN_PROGRESS
 
         return ticket
