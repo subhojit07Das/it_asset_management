@@ -10,12 +10,14 @@ class Ticket:
         self.priority = priority
         self.status = status
         self.technician = None
+        self.confirmed = False
         self.comments = []
 
     def __str__(self):
         header = (f"Ticket({self.ticket_id}) - Employee: {self.employee} - Asset: {self.asset} - "
                 f"Problem: {self.problem} - Priority: {self.priority} - Status: {self.status} - "
-                f"Technician: {self.technician}")
+                f"Technician: {self.technician} - "
+                f"Confirmed: {self.confirmed}")
 
         if not self.comments:
             return f"{header}\nComments: None"

@@ -18,3 +18,15 @@ class TicketNotInProgressError(Exception):
 
 class TechnicianNotAssignedError(Exception):
     pass
+
+class TicketNotResolvedError(Exception):
+    pass
+
+class TicketNotConfirmedError(Exception):
+    pass
+
+class EmployeeNotTicketOwnerError(Exception):
+    pass
+
+class TicketAlreadyConfirmedError(Exception):
+    pass
